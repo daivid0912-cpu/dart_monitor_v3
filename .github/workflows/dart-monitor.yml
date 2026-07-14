@@ -1,0 +1,53 @@
+name: DART 메자닌 모니터링 (매일 1회)
+
+on:
+  schedule:
+    - cron: "30 23 * * 0-4"
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "조회 시작일 (YYYY-MM-DD, 비워두면 어제 날짜)"
+        required: false
+        default: ""
+      end_date:
+        description: "조회 종료일 (YYYY-MM-DD, 비워두면 시작일과 동일)"
+        required: false
+        default: ""
+      ignore_seen:
+        description: "이미 처리한 공시도 다시 포함할지 (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 레포 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 모니터링 스크립트 실행
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          TARGET_START_DATE: ${{ github.event.inputs.start_date }}
+          TARGET_END_DATE: ${{ github.event.inputs.end_date }}
+          IGNORE_SEEN: ${{ github.event.inputs.ignore_seen }}
+        run: python dart_monitor.py --once
+
+      - name: 결과 파일 커밋
+        run: |
+          git config user.name "dart-monitor-bot"
+          git config user.email "actions@github.com"
+          git add seen_rcept.json 메자닌_발행사항_자동수집.xlsx || true
+          git diff --cached --quiet || git commit -m "일일 모니터링 결과 업데이트 [skip ci]"
+          git push
