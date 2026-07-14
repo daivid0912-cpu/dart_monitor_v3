@@ -1,0 +1,4 @@
+opendartreader
+python-dotenv
+openpyxl
+pandas
