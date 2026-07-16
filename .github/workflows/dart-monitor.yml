@@ -42,7 +42,7 @@ jobs:
           TARGET_START_DATE: ${{ github.event.inputs.start_date }}
           TARGET_END_DATE: ${{ github.event.inputs.end_date }}
           IGNORE_SEEN: ${{ github.event.inputs.ignore_seen }}
-        run: python dart_monitor.py --once
+        run: python dart_monitor.py --once --debug
 
       - name: 결과 파일 커밋
         run: |
